@@ -3,7 +3,7 @@ from unittest import TestCase
 import graphene
 from graphql import GraphQLCoreBackend
 
-from shafa.libs.graphql_backends.query_limit import (
+from graphql_limits import (
     ProtectorBackend,
     NodesLimitReached,
     get_count_of_fetched_nodes,
@@ -13,11 +13,11 @@ from shafa.libs.graphql_backends.query_limit import (
 class User(graphene.ObjectType):
     id = graphene.Int()
     books = graphene.List(
-        'shafa.libs.graphql_backends.tests.test_nodes_limit.Book',
+        lambda: Book,
         first=graphene.Int()
     )
     second_books = graphene.List(
-        'shafa.libs.graphql_backends.tests.test_nodes_limit.Book',
+        lambda: Book,
         first=graphene.Int()
     )
 
@@ -202,3 +202,104 @@ class TestNodesLimit(TestCase):
         ast = document.document_ast
         nodes = get_count_of_fetched_nodes(ast.definitions[0], {}, ['first'], {})
         self.assertEqual(nodes, 2400)
+
+    def test_ignore_introspection(self):
+        query_string = """
+            query IntrospectionQuery {
+            __schema {
+              queryType { name }
+              mutationType { name }
+              subscriptionType { name }
+              types {
+                ...FullType
+              }
+              directives {
+                name
+                description
+                locations
+                args {
+                  ...InputValue
+                }
+              }
+            }
+          }
+        
+          fragment FullType on __Type {
+            kind
+            name
+            description
+            fields(includeDeprecated: true) {
+              name
+              description
+              args {
+                ...InputValue
+              }
+              type {
+                ...TypeRef
+              }
+              isDeprecated
+              deprecationReason
+            }
+            inputFields {
+              ...InputValue
+            }
+            interfaces {
+              ...TypeRef
+            }
+            enumValues(includeDeprecated: true) {
+              name
+              description
+              isDeprecated
+              deprecationReason
+            }
+            possibleTypes {
+              ...TypeRef
+            }
+          }
+        
+          fragment InputValue on __InputValue {
+            name
+            description
+            type { ...TypeRef }
+            defaultValue
+          }
+        
+          fragment TypeRef on __Type {
+            kind
+            name
+            ofType {
+              kind
+              name
+              ofType {
+                kind
+                name
+                ofType {
+                  kind
+                  name
+                  ofType {
+                    kind
+                    name
+                    ofType {
+                      kind
+                      name
+                      ofType {
+                        kind
+                        name
+                        ofType {
+                          kind
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        """
+
+        schema = graphene.Schema(query=Query)
+        backend = ProtectorBackend(nodes_limit=2, variable_values={})
+        result = schema.execute(query_string, backend=backend, variable_values={})
+
+        self.assertIsNone(result.errors)
