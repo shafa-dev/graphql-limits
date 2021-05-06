@@ -18,11 +18,11 @@ URL = 'https://github.com/shafa-dev/graphql-limits'
 EMAIL = 'zaseka.bogdan@gmail.com'
 AUTHOR = 'Bogdan Zaseka'
 REQUIRES_PYTHON = '>=3.6.0'
-VERSION = '0.1.0'
+VERSION = '0.1.1'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    'graphql-core',
+    'graphql-core==2.3.2',
 ]
 
 # What packages are optional?
