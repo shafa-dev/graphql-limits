@@ -3,7 +3,7 @@ from unittest import TestCase
 import graphene
 from graphql import GraphQLCoreBackend
 
-from shafa.libs.graphql_backends.query_limit import (
+from graphql_limits import (
     ProtectorBackend,
     NodesLimitReached,
     get_count_of_fetched_nodes,
@@ -13,11 +13,11 @@ from shafa.libs.graphql_backends.query_limit import (
 class User(graphene.ObjectType):
     id = graphene.Int()
     books = graphene.List(
-        'shafa.libs.graphql_backends.tests.test_nodes_limit.Book',
+        lambda: Book,
         first=graphene.Int()
     )
     second_books = graphene.List(
-        'shafa.libs.graphql_backends.tests.test_nodes_limit.Book',
+        lambda: Book,
         first=graphene.Int()
     )
 
