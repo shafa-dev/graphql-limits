@@ -39,6 +39,8 @@ def get_max_depth(
     parent_depth: int = 0
 ) -> int:
     max_depth = parent_depth + 1
+    if node.name and node.name.value == '__schema':
+        return max_depth
 
     if not node.selection_set:
         # leaf node
@@ -65,6 +67,8 @@ def get_count_of_fetched_nodes(
     variable_values: t.Dict[str, t.Any],
 ) -> int:
     fetched_nodes = 0
+    if node.name and node.name.value == '__schema':
+        return 1
 
     if not node.selection_set:
         # leaf node
